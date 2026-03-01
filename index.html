@@ -1,0 +1,956 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>出品設計アシスタント｜プロンプトジェネレーター</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&family=Syne:wght@700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0f0f13;
+    --surface: #1a1a22;
+    --surface2: #22222e;
+    --border: #2e2e3e;
+    --accent: #7c5cfc;
+    --accent2: #c084fc;
+    --accent-glow: rgba(124,92,252,0.18);
+    --text: #e8e8f0;
+    --text-sub: #8888aa;
+    --success: #34d399;
+    --warning: #fbbf24;
+    --danger: #f87171;
+    --radius: 12px;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Noto Sans JP', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    padding: 0 0 60px;
+  }
+
+  /* Header */
+  .header {
+    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+    padding: 32px 24px 28px;
+    text-align: center;
+    border-bottom: 1px solid var(--border);
+    position: relative;
+    overflow: hidden;
+  }
+  .header::before {
+    content: '';
+    position: absolute;
+    top: -60px; left: 50%;
+    transform: translateX(-50%);
+    width: 400px; height: 200px;
+    background: radial-gradient(ellipse, rgba(124,92,252,0.25) 0%, transparent 70%);
+    pointer-events: none;
+  }
+  .header-icon { font-size: 36px; margin-bottom: 8px; }
+  .header h1 {
+    font-family: 'Syne', sans-serif;
+    font-size: 26px;
+    font-weight: 800;
+    background: linear-gradient(90deg, #a78bfa, #c084fc, #e879f9);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    letter-spacing: -0.5px;
+  }
+  .header p {
+    font-size: 13px;
+    color: var(--text-sub);
+    margin-top: 6px;
+  }
+
+  .container {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 24px 16px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+  }
+
+  @media (max-width: 680px) {
+    .container { grid-template-columns: 1fr; }
+    .full-width { grid-column: 1; }
+  }
+
+  .full-width { grid-column: 1 / -1; }
+
+  /* Cards */
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+  }
+
+  .card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 16px 12px;
+    border-bottom: 1px solid var(--border);
+    background: var(--surface2);
+  }
+  .card-title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--text);
+  }
+  .card-title .icon { font-size: 16px; }
+
+  .save-toggle {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 11px;
+    color: var(--text-sub);
+    cursor: pointer;
+    user-select: none;
+  }
+  .save-toggle input[type="checkbox"] { display: none; }
+  .toggle-track {
+    width: 32px; height: 18px;
+    background: var(--border);
+    border-radius: 9px;
+    position: relative;
+    transition: background 0.2s;
+  }
+  .toggle-track::after {
+    content: '';
+    position: absolute;
+    top: 3px; left: 3px;
+    width: 12px; height: 12px;
+    background: #fff;
+    border-radius: 50%;
+    transition: transform 0.2s;
+  }
+  .save-toggle input:checked + .toggle-track { background: var(--accent); }
+  .save-toggle input:checked + .toggle-track::after { transform: translateX(14px); }
+
+  .card-body { padding: 14px 16px; }
+
+  /* Form elements */
+  label {
+    display: block;
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--text-sub);
+    margin-bottom: 6px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  label .req {
+    color: var(--accent2);
+    margin-left: 3px;
+  }
+
+  input[type="text"], input[type="url"], textarea, select {
+    width: 100%;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    color: var(--text);
+    font-family: 'Noto Sans JP', sans-serif;
+    font-size: 13px;
+    padding: 9px 12px;
+    outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    -webkit-appearance: none;
+  }
+  input:focus, textarea:focus, select:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px var(--accent-glow);
+  }
+  textarea { resize: vertical; min-height: 72px; line-height: 1.6; }
+  select option { background: var(--surface2); }
+
+  /* ブラウザのオートコンプリート背景を強制的にダークにする */
+  input:-webkit-autofill,
+  input:-webkit-autofill:hover,
+  input:-webkit-autofill:focus,
+  textarea:-webkit-autofill,
+  textarea:-webkit-autofill:hover,
+  textarea:-webkit-autofill:focus,
+  select:-webkit-autofill,
+  select:-webkit-autofill:hover,
+  select:-webkit-autofill:focus {
+    -webkit-text-fill-color: #e8e8f0;
+    -webkit-box-shadow: 0 0 0px 1000px #0f0f13 inset;
+    box-shadow: 0 0 0px 1000px #0f0f13 inset;
+    transition: background-color 5000s ease-in-out 0s;
+    caret-color: #e8e8f0;
+  }
+
+  .form-row { margin-bottom: 12px; }
+  .form-row:last-child { margin-bottom: 0; }
+
+  .placeholder-hint {
+    font-size: 11px;
+    color: var(--text-sub);
+    margin-top: 4px;
+    line-height: 1.5;
+  }
+
+  /* Clear button */
+  .clear-btn {
+    background: none;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    color: var(--text-sub);
+    font-size: 11px;
+    padding: 3px 8px;
+    cursor: pointer;
+    font-family: 'Noto Sans JP', sans-serif;
+    transition: all 0.2s;
+  }
+  .clear-btn:hover { border-color: var(--danger); color: var(--danger); }
+
+  /* Action buttons */
+  .actions {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+
+  .btn {
+    font-family: 'Noto Sans JP', sans-serif;
+    font-weight: 700;
+    font-size: 13px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    padding: 10px 18px;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .btn-primary {
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    color: #fff;
+    box-shadow: 0 4px 14px rgba(124,92,252,0.35);
+  }
+  .btn-primary:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 6px 20px rgba(124,92,252,0.45);
+  }
+  .btn-secondary {
+    background: var(--surface2);
+    color: var(--text);
+    border: 1px solid var(--border);
+  }
+  .btn-secondary:hover { border-color: var(--accent); color: var(--accent2); }
+  .btn-danger {
+    background: var(--surface2);
+    color: var(--danger);
+    border: 1px solid var(--border);
+  }
+  .btn-danger:hover { border-color: var(--danger); background: rgba(248,113,113,0.1); }
+  .btn-save {
+    background: var(--surface2);
+    color: var(--success);
+    border: 1px solid var(--border);
+  }
+  .btn-save:hover { border-color: var(--success); background: rgba(52,211,153,0.1); }
+
+  /* Output area */
+  .output-wrap {
+    position: relative;
+  }
+  #output {
+    width: 100%;
+    min-height: 220px;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    color: #a0e0c0;
+    font-family: 'Noto Sans JP', sans-serif;
+    font-size: 12px;
+    padding: 14px;
+    line-height: 1.7;
+    resize: vertical;
+    outline: none;
+  }
+  #output:focus { border-color: var(--accent); }
+
+  .output-actions {
+    display: flex;
+    gap: 8px;
+    margin-top: 10px;
+    flex-wrap: wrap;
+  }
+
+  /* Toast */
+  .toast {
+    position: fixed;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%) translateY(-80px);
+    background: var(--surface2);
+    border: 1px solid var(--accent);
+    color: var(--text);
+    padding: 10px 20px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 700;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+    transition: transform 0.3s cubic-bezier(0.34,1.56,0.64,1);
+    z-index: 100;
+    white-space: nowrap;
+  }
+  .toast.show { transform: translateX(-50%) translateY(0); }
+
+  /* Modal */
+  .modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.7);
+    z-index: 200;
+    align-items: center;
+    justify-content: center;
+  }
+  .modal-overlay.show { display: flex; }
+  .modal {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 28px 24px;
+    max-width: 360px;
+    width: 90%;
+    text-align: center;
+  }
+  .modal h3 { font-size: 16px; margin-bottom: 10px; }
+  .modal p { font-size: 13px; color: var(--text-sub); margin-bottom: 20px; line-height: 1.6; }
+  .modal-btns { display: flex; gap: 10px; justify-content: center; }
+
+  /* Tips */
+  .tips {
+    background: rgba(124,92,252,0.08);
+    border: 1px solid rgba(124,92,252,0.2);
+    border-radius: 8px;
+    padding: 12px 14px;
+    font-size: 12px;
+    color: var(--text-sub);
+    line-height: 1.7;
+  }
+  .tips strong { color: var(--accent2); }
+
+  .divider {
+    border: none;
+    border-top: 1px solid var(--border);
+    margin: 12px 0;
+  }
+
+  /* Badge */
+  .badge {
+    display: inline-block;
+    font-size: 10px;
+    font-weight: 700;
+    padding: 2px 7px;
+    border-radius: 4px;
+    background: rgba(124,92,252,0.2);
+    color: var(--accent2);
+    margin-left: 6px;
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-icon">🛍️</div>
+  <h1>SellCraft</h1>
+  <p style="font-size:12px;color:#6666aa;margin-top:2px;margin-bottom:4px;">出品設計アシスタント</p>
+  <p>情報を入力してManusに送るプロンプトを自動生成</p>
+</div>
+
+<div class="container">
+
+  <!-- 基本情報 -->
+  <div class="card full-width">
+    <div class="card-header">
+      <div class="card-title"><span class="icon">🔍</span> 基本情報</div>
+      <div style="display:flex;gap:8px;align-items:center;">
+        <button class="clear-btn" onclick="clearSection('basic')">クリア</button>
+        <label class="save-toggle">
+          <input type="checkbox" id="save_basic" onchange="onToggle()">
+          <span class="toggle-track"></span>
+          保存あり
+        </label>
+      </div>
+    </div>
+    <div class="card-body">
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;">
+        <div class="form-row">
+          <label>サイト名 <span class="req">＊</span></label>
+          <select id="site_name">
+            <option value="">選択してください</option>
+            <option value="ココナラ">ココナラ</option>
+            <option value="クラウドワークス">クラウドワークス</option>
+            <option value="ランサーズ">ランサーズ</option>
+            <option value="SKIMA">SKIMA</option>
+          </select>
+        </div>
+        <div class="form-row">
+          <label>大ジャンル <span class="req">＊</span></label>
+          <input type="text" id="genre_major" placeholder="例：Canvaテンプレート販売">
+        </div>
+        <div class="form-row">
+          <label>中ジャンル <span class="req">＊</span></label>
+          <input type="text" id="genre_minor" placeholder="例：ビジネス名刺">
+        </div>
+      </div>
+      <div style="margin-top:12px;">
+        <label>収集件数</label>
+        <select id="count" style="width:160px;">
+          <option value="10">10件</option>
+          <option value="20" selected>20件</option>
+          <option value="30">30件</option>
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <!-- 自分のこと -->
+  <div class="card">
+    <div class="card-header">
+      <div class="card-title"><span class="icon">👤</span> 自分のこと <span class="badge">保存あり</span></div>
+      <div style="display:flex;gap:8px;align-items:center;">
+        <button class="clear-btn" onclick="clearSection('about')">クリア</button>
+        <label class="save-toggle">
+          <input type="checkbox" id="save_about" onchange="onToggle()">
+          <span class="toggle-track"></span>
+          保存あり
+        </label>
+      </div>
+    </div>
+    <div class="card-body">
+      <div class="form-row">
+        <label>出品経験レベル</label>
+        <select id="experience">
+          <option value="">選択してください</option>
+          <option value="初出品">初出品</option>
+          <option value="販売実績あり（〜10件）">販売実績あり（〜10件）</option>
+          <option value="販売実績あり（11件以上）">販売実績あり（11件以上）</option>
+        </select>
+      </div>
+      <div class="form-row">
+        <label>自分の強み</label>
+        <textarea id="strength" placeholder="例：シンプルデザインが得意・Canva歴3年" rows="2"></textarea>
+      </div>
+      <div class="form-row">
+        <label>希望価格帯</label>
+        <select id="price_range">
+          <option value="">選択してください</option>
+          <option value="〜3,000円">〜3,000円</option>
+          <option value="3,000〜5,000円">3,000〜5,000円</option>
+          <option value="5,000〜10,000円">5,000〜10,000円</option>
+          <option value="10,000円以上">10,000円以上</option>
+        </select>
+      </div>
+      <div class="form-row">
+        <label>納品できる形式</label>
+        <input type="text" id="delivery_format" placeholder="例：Canva共有リンクのみ・PDFも可">
+      </div>
+    </div>
+  </div>
+
+  <!-- ターゲット・戦略 -->
+  <div class="card">
+    <div class="card-header">
+      <div class="card-title"><span class="icon">🎯</span> ターゲット・戦略 <span class="badge">保存あり</span></div>
+      <div style="display:flex;gap:8px;align-items:center;">
+        <button class="clear-btn" onclick="clearSection('strategy')">クリア</button>
+        <label class="save-toggle">
+          <input type="checkbox" id="save_strategy" onchange="onToggle()">
+          <span class="toggle-track"></span>
+          保存あり
+        </label>
+      </div>
+    </div>
+    <div class="card-body">
+      <div class="form-row">
+        <label>想定ターゲット</label>
+        <textarea id="target" placeholder="例：フリーランス初心者・副業を始めた方" rows="2"></textarea>
+      </div>
+      <div class="form-row">
+        <label>ライバルに勝ちたいポイント</label>
+        <select id="win_point">
+          <option value="">選択してください</option>
+          <option value="価格の安さ">価格の安さ</option>
+          <option value="納品スピード">納品スピード</option>
+          <option value="デザイン品質">デザイン品質</option>
+          <option value="サポートの丁寧さ">サポートの丁寧さ</option>
+          <option value="ニッチなターゲット特化">ニッチなターゲット特化</option>
+        </select>
+      </div>
+      <div class="form-row">
+        <label>除外したいこと（対応しないこと）</label>
+        <textarea id="exclusions" placeholder="例：両面対応はしない・急ぎ対応はしない・ロゴ作成は含まない" rows="3"></textarea>
+      </div>
+    </div>
+  </div>
+
+  <!-- 出力先設定 -->
+  <div class="card full-width">
+    <div class="card-header">
+      <div class="card-title"><span class="icon">⚙️</span> 出力先設定 <span class="badge">保存あり</span></div>
+      <label class="save-toggle">
+        <input type="checkbox" id="save_config" onchange="onToggle()">
+        <span class="toggle-track"></span>
+        保存あり
+      </label>
+    </div>
+    <div class="card-body">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+        <div class="form-row">
+          <label>GAS URL <span class="req">＊</span></label>
+          <input type="url" id="gas_url" placeholder="https://script.google.com/macros/s/...">
+          <div class="placeholder-hint">💡 デプロイしたWebアプリのURL</div>
+        </div>
+        <div class="form-row">
+          <label>スプレッドシートURL（任意）</label>
+          <input type="url" id="sheet_url" placeholder="https://docs.google.com/spreadsheets/d/...">
+          <div class="placeholder-hint">💡 出力先のスプレッドシートURL（メモ用）</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- アクション -->
+  <div class="card full-width">
+    <div class="card-body">
+      <div class="actions">
+        <button class="btn btn-primary" onclick="generate()">✨ プロンプトを生成する</button>
+        <button class="btn btn-save" onclick="saveAll()">💾 固定情報を保存</button>
+        <button class="btn btn-danger" onclick="showResetModal()">🗑️ 全て初期化</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 出力 -->
+  <div class="card full-width">
+    <div class="card-header">
+      <div class="card-title"><span class="icon">📄</span> 生成されたプロンプト</div>
+    </div>
+    <div class="card-body">
+      <div class="output-wrap">
+        <textarea id="output" readonly placeholder="ここにプロンプトが生成されます。&#10;項目を入力して「プロンプトを生成する」ボタンを押してください。"></textarea>
+      </div>
+      <div class="output-actions">
+        <button class="btn btn-secondary" onclick="copyOutput()">📋 コピー</button>
+        <button class="btn btn-danger" onclick="clearOutput()">🗑️ クリア</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tips -->
+  <div class="card full-width">
+    <div class="card-body">
+      <div class="tips">
+        <strong>💡 使い方</strong><br>
+        ・大ジャンル・中ジャンルを入力 → 「プロンプトを生成する」を押す → 「コピー」でManusに貼り付ける<br>
+        <strong>💾 保存について</strong><br>
+        ・トグルで「保存あり」にした項目は「固定情報を保存」ボタンで保存できます。次回起動時に自動で読み込まれます<br>
+        ・大ジャンル・中ジャンルはブラウザを閉じると消えます<br>
+        <strong>🔄 クリアについて</strong><br>
+        ・各セクションの「クリア」→そのセクションだけ消去　／　「全て初期化」→保存データも含めて全て消去
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<!-- Reset Modal -->
+<div class="modal-overlay" id="resetModal">
+  <div class="modal">
+    <h3>🗑️ 全て初期化しますか？</h3>
+    <p>入力した内容と保存した固定情報が<br>全て消えます。<br>この操作は元に戻せません。</p>
+    <div class="modal-btns">
+      <button class="btn btn-danger" onclick="resetAll()">初期化する</button>
+      <button class="btn btn-secondary" onclick="hideResetModal()">キャンセル</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const SAVE_KEYS = {
+  about: ['experience','strength','price_range','delivery_format'],
+  strategy: ['target','win_point','exclusions'],
+  config: ['gas_url','sheet_url']
+};
+
+function showToast(msg, duration=2200) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), duration);
+}
+
+function onToggle() {}
+
+function saveAll() {
+  ['about','strategy','config'].forEach(sec => {
+    const toggle = document.getElementById('save_' + sec);
+    if (toggle && toggle.checked) {
+      SAVE_KEYS[sec].forEach(key => {
+        const el = document.getElementById(key);
+        if (el) localStorage.setItem('listing_' + key, el.value);
+      });
+    }
+  });
+  // GAS URLは常に保存
+  const gasEl = document.getElementById('gas_url');
+  if (gasEl && gasEl.value) localStorage.setItem('listing_gas_url', gasEl.value);
+  showToast('💾 保存しました！');
+}
+
+function loadSaved() {
+  const allKeys = [...SAVE_KEYS.about, ...SAVE_KEYS.strategy, ...SAVE_KEYS.config];
+  allKeys.forEach(key => {
+    const saved = localStorage.getItem('listing_' + key);
+    if (saved) {
+      const el = document.getElementById(key);
+      if (el) el.value = saved;
+    }
+  });
+  // toggle states
+  ['about','strategy','config'].forEach(sec => {
+    const hasData = SAVE_KEYS[sec].some(k => localStorage.getItem('listing_' + k));
+    if (hasData) {
+      const toggle = document.getElementById('save_' + sec);
+      if (toggle) toggle.checked = true;
+    }
+  });
+}
+
+function clearSection(sec) {
+  const keyMap = {
+    basic: ['genre_major','genre_minor'],
+    about: SAVE_KEYS.about,
+    strategy: SAVE_KEYS.strategy
+  };
+  (keyMap[sec] || []).forEach(key => {
+    const el = document.getElementById(key);
+    if (el) el.value = '';
+  });
+  showToast('🔄 クリアしました');
+}
+
+function clearOutput() {
+  document.getElementById('output').value = '';
+}
+
+function showResetModal() {
+  document.getElementById('resetModal').classList.add('show');
+}
+function hideResetModal() {
+  document.getElementById('resetModal').classList.remove('show');
+}
+function resetAll() {
+  const allKeys = ['genre_major','genre_minor',...SAVE_KEYS.about,...SAVE_KEYS.strategy,...SAVE_KEYS.config];
+  allKeys.forEach(key => {
+    const el = document.getElementById(key);
+    if (el) el.value = '';
+    localStorage.removeItem('listing_' + key);
+  });
+  document.getElementById('site_name').selectedIndex = 0;
+  document.getElementById('count').value = '20';
+  document.getElementById('output').value = '';
+  hideResetModal();
+  showToast('🗑️ 全て初期化しました');
+}
+
+function copyOutput() {
+  const output = document.getElementById('output');
+  if (!output.value) { showToast('⚠️ まずプロンプトを生成してください'); return; }
+  // Try modern clipboard API first, fallback to execCommand
+  if (navigator.clipboard && window.isSecureContext) {
+    navigator.clipboard.writeText(output.value).then(() => {
+      showToast('📋 コピーしました！Manusに貼り付けてください');
+    }).catch(() => {
+      fallbackCopy(output);
+    });
+  } else {
+    fallbackCopy(output);
+  }
+}
+
+function fallbackCopy(output) {
+  output.select();
+  output.setSelectionRange(0, 99999);
+  try {
+    document.execCommand('copy');
+    showToast('📋 コピーしました！Manusに貼り付けてください');
+  } catch(e) {
+    showToast('⚠️ 手動でテキストを選択してコピーしてください');
+  }
+}
+
+function generate() {
+  const siteName = document.getElementById('site_name').value;
+  const genreMajor = document.getElementById('genre_major').value.trim();
+  const genreMinor = document.getElementById('genre_minor').value.trim();
+  const count = document.getElementById('count').value;
+  const gasUrl = document.getElementById('gas_url').value.trim();
+
+  if (!genreMajor || !genreMinor) {
+    showToast('⚠️ 大ジャンルと中ジャンルを入力してください');
+    return;
+  }
+  if (!gasUrl) {
+    showToast('⚠️ GAS URLを入力してください');
+    return;
+  }
+
+  const experience = document.getElementById('experience').value;
+  const strength = document.getElementById('strength').value.trim();
+  const priceRange = document.getElementById('price_range').value;
+  const deliveryFormat = document.getElementById('delivery_format').value.trim();
+  const target = document.getElementById('target').value.trim();
+  const winPoint = document.getElementById('win_point').value;
+  const exclusions = document.getElementById('exclusions').value.trim();
+
+  const prompt = `あなたは出品設計アナリスト兼コピーライターです。
+
+【目的】
+指定ジャンルの出品ページを分析し、勝ちやすい出品構成とサンプル文章を設計する。
+
+【取得条件】
+・公開ページのみ取得すること
+・ログインが必要な情報は取得しないこと
+・ログインが必要な画面が表示された場合は、作業を一時停止してユーザーにログインを依頼してください。ログイン完了後に作業を再開してください。
+・文章の丸写し禁止。必ず要約・構造分解すること
+・取得した出品ページのURLを必ず保存すること
+・過度な短時間アクセスはしないこと
+
+【処理ステップ】
+
+■ STEP 1：出品ページの収集
+${siteName}で「${genreMajor} × ${genreMinor}」の検索を行い、販売実績順（人気順）で上位${count}件の出品ページURLを取得する。
+
+■ STEP 2：各ページの構造分解
+取得した各ページを以下の項目に分解・要約する：
+1. URL / 2. タイトル / 3. 価格 / 4. 納期 / 5. 修正回数
+6. 販売実績 / 7. 冒頭キャッチコピー / 8. ターゲット / 9. 提供内容
+10. 納品形式 / 11. 購入後の流れ / 12. 必要情報 / 13. オプション
+14. 注意事項 / 15. 差別化ポイント / 16. 良い点 / 17. 弱い点 / 18. 構成タイプ分類
+
+■ STEP 3：市場全体の分析
+頻出セクションランキング（上位10）、頻出ワードTOP20、強い検索ワード候補（上位10）、価格中央値・平均・最安・最高、価格帯分布、訴求タイプの分布、構成パターンを3〜5種類に分類・命名
+
+■ STEP 4：総合判断と推奨設計
+- 入れるべき項目一覧（重要度付き）
+- 推奨構成テンプレ（セクション順番付き）
+- 差別化戦略案（入力された「ライバルに勝ちたいポイント」を優先して反映）
+- 価格ポジション提案
+- 対応しない項目リスト（入力された「除外したいこと」をもとに整理）
+
+■ STEP 5：サンプル出品文章の自動生成
+1. 完成版サンプル出品文章（そのまま使えるレベル）
+2. トーン別タイトルバリエーション4案（安心型／実績型／おしゃれ型／価格訴求型）
+3. 構成選定の根拠
+
+---
+
+【入力情報】
+
+【基本情報】
+・サイト名：${siteName}
+・大ジャンル：${genreMajor}
+・中ジャンル：${genreMinor}
+・収集件数：${count}件
+
+【自分のこと】
+・出品経験レベル：${experience || '未記入'}
+・想定ターゲット：${target || '未記入'}
+・自分の強み：${strength || '未記入'}
+・希望価格帯：${priceRange || '未記入'}
+・納品できる形式：${deliveryFormat || '未記入'}
+・ライバルに勝ちたいポイント：${winPoint || '未記入'}
+
+【除外したいこと】
+・対応しないこと：${exclusions || '未記入'}
+
+---
+
+【出力形式】
+分析完了後、以下の4つのJSONを順番にPOSTリクエストで送信してください。
+送信先URL：${gasUrl}
+
+--- 送信① シート①：競合構造分解 ---
+{
+  "sheet_type": "competitors",
+  "rows": [
+    {
+      "no": 1,
+      "url": "https://...",
+      "title": "タイトル",
+      "price": "価格",
+      "delivery": "納期",
+      "revisions": "修正回数",
+      "sales_record": "販売実績",
+      "catch_copy": "冒頭キャッチの要約",
+      "target": "ターゲット層",
+      "service_content": "提供内容",
+      "delivery_format": "納品形式",
+      "flow": "購入後の流れ",
+      "required_info": "必要情報",
+      "options": "オプション内容",
+      "caution": "注意事項",
+      "differentiation": "差別化ポイント",
+      "good_points": "良い点",
+      "weak_points": "弱い点",
+      "pattern_type": "構成タイプ"
+    }
+  ]
+}
+
+--- 送信② シート②：市場構造分析 ---
+{
+  "sheet_type": "analysis",
+  "sections": {
+    "freq_sections": {
+      "title": "頻出セクションランキング",
+      "headers": ["順位", "セクション名", "出現数", "備考"],
+      "rows": [[1, "セクション名", "X/${count}件", "備考"]]
+    },
+    "price": {
+      "title": "価格分析",
+      "headers": ["指標", "値（円）", "", "コメント"],
+      "rows": [["価格中央値", "X,XXX円", "", "コメント"]]
+    },
+    "keywords": {
+      "title": "頻出ワードTOP20",
+      "headers": ["順位", "ワード", "出現回数", "種別"],
+      "rows": [[1, "ワード", "X回", "種別"]]
+    },
+    "search_words": {
+      "title": "強い検索ワード候補",
+      "headers": ["順位", "検索ワード", "理由", "推奨度"],
+      "rows": [[1, "検索ワード", "理由", "★★★"]]
+    },
+    "appeal_types": {
+      "title": "訴求タイプ分布",
+      "headers": ["訴求タイプ", "件数", "主なキーワード", "コメント"],
+      "rows": [["タイプ名", "X件(XX%)", "キーワード", "コメント"]]
+    },
+    "patterns": {
+      "title": "構成パターン分類",
+      "headers": ["パターン", "特徴", "該当件数", "傾向"],
+      "rows": [["Aパターン：〇〇型", "特徴", "X件", "傾向"]]
+    }
+  }
+}
+
+--- 送信③ シート③：推奨設計 ---
+{
+  "sheet_type": "design",
+  "sections": {
+    "must_items": {
+      "title": "入れるべき項目一覧",
+      "headers": ["項目名", "理由・根拠", "重要度"],
+      "rows": [["項目名", "理由", "★★★ 必須"]]
+    },
+    "template": {
+      "title": "推奨構成テンプレ（順番付き）",
+      "headers": ["順番", "セクション名", "書き方のポイント"],
+      "rows": [["①", "セクション名", "ポイント"]]
+    },
+    "strategy": {
+      "title": "差別化戦略案",
+      "headers": ["戦略タイプ", "具体的な内容", "狙い目の価格帯"],
+      "rows": [["戦略タイプ", "内容", "価格帯"]]
+    },
+    "price": {
+      "title": "価格ポジション提案",
+      "headers": ["項目", "提案内容", "根拠"],
+      "rows": [["推奨基本料金", "X,XXX円", "根拠"]]
+    },
+    "exclusions": {
+      "title": "対応しない項目リスト",
+      "headers": ["対応しないこと", "理由・補足", "代替案（あれば）"],
+      "rows": [["対応しない内容", "理由", "代替案"]]
+    }
+  }
+}
+
+--- 送信④ シート④：自動生成サンプル ---
+{
+  "sheet_type": "sample",
+  "sections": {
+    "input_info": {
+      "title": "入力情報（確認）",
+      "rows": [
+        ["サイト名", "${siteName}"],
+        ["大ジャンル", "${genreMajor}"],
+        ["中ジャンル", "${genreMinor}"],
+        ["収集件数", "${count}件"]
+      ]
+    },
+    "main_sample": {
+      "title": "完成版サンプル出品文章",
+      "rows": [
+        ["【タイトル】", "生成したタイトル"],
+        ["【冒頭キャッチ】", "生成したキャッチコピー"],
+        ["【こんな方におすすめ】", "生成したターゲット文"],
+        ["【提供内容】", "生成した提供内容"],
+        ["【納品形式】", "生成した納品形式"],
+        ["【購入後の流れ】", "生成したステップ"],
+        ["【購入前の準備物】", "生成した必要情報"],
+        ["【オプション】", "生成したオプション"],
+        ["【注意事項】", "生成した注意事項"],
+        ["【出品者からひとこと】", "生成したひとこと"]
+      ]
+    },
+    "variations": {
+      "title": "トーン別タイトルバリエーション4案",
+      "rows": [
+        ["安心・丁寧型", "生成したタイトル"],
+        ["実績・信頼型", "生成したタイトル"],
+        ["おしゃれ・デザイン型", "生成したタイトル"],
+        ["価格訴求型", "生成したタイトル"]
+      ]
+    },
+    "rationale": {
+      "title": "構成選定の根拠",
+      "rows": [
+        ["この構成を選んだ理由", "根拠の説明"],
+        ["競合との差別化ポイント", "差別化の説明"],
+        ["価格設定の根拠", "価格の根拠"],
+        ["ターゲット設定の根拠", "ターゲットの根拠"],
+        ["ライバルに勝つための優先戦略", "入力されたポイントをどう反映したか"],
+        ["除外項目の反映確認", "対応しないことがサンプルに含まれていないかの確認"]
+      ]
+    }
+  }
+}`;
+
+  document.getElementById('output').value = prompt;
+  showToast('✨ プロンプトを生成しました！');
+}
+
+// Load on start
+window.addEventListener('DOMContentLoaded', () => {
+  loadSaved();
+  // Set default GAS URL if saved
+  const savedGas = localStorage.getItem('listing_gas_url');
+  if (savedGas) document.getElementById('gas_url').value = savedGas;
+});
+</script>
+</body>
+</html>
