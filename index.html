@@ -380,13 +380,13 @@
   <!-- 基本情報 -->
   <div class="card full-width">
     <div class="card-header">
-      <div class="card-title"><span class="icon">🔍</span> 基本情報</div>
+      <div class="card-title"><span class="icon">🔍</span> 検索条件</div>
       <div style="display:flex;gap:8px;align-items:center;">
         <button class="clear-btn" onclick="clearSection('basic')">クリア</button>
         <label class="save-toggle">
           <input type="checkbox" id="save_basic" onchange="onToggle()">
           <span class="toggle-track"></span>
-          保存あり
+          <span style="color:#c084fc;font-size:10px;font-weight:700;">保存</span>
         </label>
       </div>
     </div>
@@ -425,13 +425,13 @@
   <!-- 自分のこと -->
   <div class="card">
     <div class="card-header">
-      <div class="card-title"><span class="icon">👤</span> 自分のこと <span class="badge">保存あり</span></div>
+      <div class="card-title"><span class="icon">👤</span> 基本情報</div>
       <div style="display:flex;gap:8px;align-items:center;">
         <button class="clear-btn" onclick="clearSection('about')">クリア</button>
         <label class="save-toggle">
           <input type="checkbox" id="save_about" onchange="onToggle()">
           <span class="toggle-track"></span>
-          保存あり
+          <span style="color:#c084fc;font-size:10px;font-weight:700;">保存</span>
         </label>
       </div>
     </div>
@@ -469,13 +469,13 @@
   <!-- ターゲット・戦略 -->
   <div class="card">
     <div class="card-header">
-      <div class="card-title"><span class="icon">🎯</span> ターゲット・戦略 <span class="badge">保存あり</span></div>
+      <div class="card-title"><span class="icon">🎯</span> ターゲット・戦略</div>
       <div style="display:flex;gap:8px;align-items:center;">
         <button class="clear-btn" onclick="clearSection('strategy')">クリア</button>
         <label class="save-toggle">
           <input type="checkbox" id="save_strategy" onchange="onToggle()">
           <span class="toggle-track"></span>
-          保存あり
+          <span style="color:#c084fc;font-size:10px;font-weight:700;">保存</span>
         </label>
       </div>
     </div>
@@ -505,11 +505,11 @@
   <!-- 出力先設定 -->
   <div class="card full-width">
     <div class="card-header">
-      <div class="card-title"><span class="icon">⚙️</span> 出力先設定 <span class="badge">保存あり</span></div>
+      <div class="card-title"><span class="icon">⚙️</span> 出力先設定</div>
       <label class="save-toggle">
         <input type="checkbox" id="save_config" onchange="onToggle()">
         <span class="toggle-track"></span>
-        保存あり
+          <span style="color:#c084fc;font-size:10px;font-weight:700;">保存</span>
       </label>
     </div>
     <div class="card-body">
@@ -562,7 +562,7 @@
         <strong>💡 使い方</strong><br>
         ・大ジャンル・中ジャンルを入力 → 「プロンプトを生成する」を押す → 「コピー」でManusに貼り付ける<br>
         <strong>💾 保存について</strong><br>
-        ・トグルで「保存あり」にした項目は「固定情報を保存」ボタンで保存できます。次回起動時に自動で読み込まれます<br>
+        ・トグルで「保存」にした項目は「固定情報を保存」ボタンで保存できます。次回起動時に自動で読み込まれます<br>
         ・大ジャンル・中ジャンルはブラウザを閉じると消えます<br>
         <strong>🔄 クリアについて</strong><br>
         ・各セクションの「クリア」→そのセクションだけ消去　／　「全て初期化」→保存データも含めて全て消去
@@ -671,6 +671,11 @@ function resetAll() {
   document.getElementById('site_name').selectedIndex = 0;
   document.getElementById('count').value = '20';
   document.getElementById('output').value = '';
+  // トグルも全部オフに戻す
+  ['save_basic','save_about','save_strategy','save_config'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.checked = false;
+  });
   hideResetModal();
   showToast('🗑️ 全て初期化しました');
 }
