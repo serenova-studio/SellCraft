@@ -686,7 +686,7 @@ function copyOutput() {
   // Try modern clipboard API first, fallback to execCommand
   if (navigator.clipboard && window.isSecureContext) {
     navigator.clipboard.writeText(output.value).then(() => {
-      showToast('📋 コピーしました！Manusに貼り付けてください');
+      showToast('📋 コピーしました！AIエージェントに貼り付けてください');
     }).catch(() => {
       fallbackCopy(output);
     });
@@ -700,7 +700,7 @@ function fallbackCopy(output) {
   output.setSelectionRange(0, 99999);
   try {
     document.execCommand('copy');
-    showToast('📋 コピーしました！Manusに貼り付けてください');
+    showToast('📋 コピーしました！AIエージェントに貼り付けてください');
   } catch(e) {
     showToast('⚠️ 手動でテキストを選択してコピーしてください');
   }
@@ -713,6 +713,10 @@ function generate() {
   const count = document.getElementById('count').value;
   const gasUrl = document.getElementById('gas_url').value.trim();
 
+  if (!siteName) {
+    showToast('⚠️ サイト名を選択してください');
+    return;
+  }
   if (!genreMajor || !genreMinor) {
     showToast('⚠️ 大ジャンルと中ジャンルを入力してください');
     return;
