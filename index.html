@@ -407,7 +407,7 @@
           <input type="text" id="genre_major" placeholder="例：Canvaテンプレート販売">
         </div>
         <div class="form-row">
-          <label>中ジャンル <span class="req">＊</span></label>
+          <label>中ジャンル <span style="font-size:10px;color:var(--text-sub);font-weight:400;">任意</span></label>
           <input type="text" id="genre_minor" placeholder="例：ビジネス名刺">
         </div>
       </div>
@@ -717,8 +717,8 @@ function generate() {
     showToast('⚠️ サイト名を選択してください');
     return;
   }
-  if (!genreMajor || !genreMinor) {
-    showToast('⚠️ 大ジャンルと中ジャンルを入力してください');
+  if (!genreMajor) {
+    showToast('⚠️ 大ジャンルを入力してください');
     return;
   }
   if (!gasUrl) {
@@ -750,7 +750,7 @@ function generate() {
 【処理ステップ】
 
 ■ STEP 1：出品ページの収集
-${siteName}で「${genreMajor} × ${genreMinor}」の検索を行い、販売実績順（人気順）で上位${count}件の出品ページURLを取得する。
+${siteName}で「${genreMajor}${genreMinor ? " × " + genreMinor : ""}」の検索を行い、販売実績順（人気順）で上位${count}件の出品ページURLを取得する。
 
 ■ STEP 2：各ページの構造分解
 取得した各ページを以下の項目に分解・要約する：
@@ -789,7 +789,7 @@ ${siteName}で「${genreMajor} × ${genreMinor}」の検索を行い、販売実
 【基本情報】
 ・サイト名：${siteName}
 ・大ジャンル：${genreMajor}
-・中ジャンル：${genreMinor}
+・中ジャンル：${genreMinor || '未記入'}
 ・収集件数：${count}件
 
 【自分のこと】
