@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>SellCraft｜出品戦略アシスタント</title>
+<title>SellCraft｜裏バージョン（操作用）</title>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&family=Syne:wght@700;800&display=swap" rel="stylesheet">
 <style>
   :root {
@@ -372,7 +372,7 @@
   <div class="header-icon">🛍️</div>
   <h1>SellCraft</h1>
   <p style="font-size:12px;color:#6666aa;margin-top:2px;margin-bottom:4px;">出品設計アシスタント</p>
-  <p>AIエージェントに送るプロンプトを自動生成</p>
+  <p>裏バージョン｜ヒアリング情報入力用</p>
 </div>
 
 <div class="container">
@@ -404,7 +404,23 @@
         </div>
         <div class="form-row">
           <label>大ジャンル <span class="req">＊</span></label>
-          <input type="text" id="genre_major" placeholder="例：デザイン・制作">
+          <select id="genre_major_select" onchange="onGenreMajorChange(this)">
+            <option value="">選択してください</option>
+            <option value="デザイン・制作">デザイン・制作</option>
+            <option value="イラスト・漫画">イラスト・漫画</option>
+            <option value="Webサイト制作・Webデザイン">Webサイト制作・Webデザイン</option>
+            <option value="動画・アニメーション・撮影">動画・アニメーション・撮影</option>
+            <option value="音楽・ナレーション">音楽・ナレーション</option>
+            <option value="ライティング・翻訳・文章">ライティング・翻訳・文章</option>
+            <option value="IT・プログラミング・開発">IT・プログラミング・開発</option>
+            <option value="Webマーケティング・集客・SNS">Webマーケティング・集客・SNS</option>
+            <option value="ビジネス代行・コンサル">ビジネス代行・コンサル</option>
+            <option value="占い・スピリチュアル">占い・スピリチュアル</option>
+            <option value="美容・ファッション・ライフスタイル">美容・ファッション・ライフスタイル</option>
+            <option value="学習・教育・レッスン">学習・教育・レッスン</option>
+            <option value="custom">自由入力する</option>
+          </select>
+          <input type="text" id="genre_major" placeholder="例：ハンドメイド・手芸" style="margin-top:6px;display:none;">
         </div>
       </div>
       <div style="margin-top:12px;">
@@ -453,13 +469,43 @@
       </div>
       <div class="form-row">
         <label>希望価格帯</label>
-        <select id="price_range">
+        <select id="price_range" onchange="onPriceRangeChange(this)">
           <option value="">選択してください</option>
           <option value="〜3,000円">〜3,000円</option>
           <option value="3,000〜5,000円">3,000〜5,000円</option>
           <option value="5,000〜10,000円">5,000〜10,000円</option>
-          <option value="10,000円以上">10,000円以上</option>
+          <option value="10,000〜30,000円">10,000〜30,000円</option>
+          <option value="30,000〜50,000円">30,000〜50,000円</option>
+          <option value="50,000円以上">50,000円以上</option>
+          <option value="custom">自由入力する</option>
         </select>
+        <input type="text" id="price_range_custom" placeholder="例：15,000〜20,000円" style="margin-top:6px;display:none;">
+      </div>
+      <div class="form-row">
+        <label>納品スピード</label>
+        <select id="delivery_speed" onchange="onDeliverySpeedChange(this)">
+          <option value="">選択してください</option>
+          <option value="即日納品">即日納品</option>
+          <option value="1〜3日以内">1〜3日以内</option>
+          <option value="3〜7日以内">3〜7日以内</option>
+          <option value="1〜2週間">1〜2週間</option>
+          <option value="応相談">応相談</option>
+          <option value="custom">自由入力する</option>
+        </select>
+        <input type="text" id="delivery_speed_custom" placeholder="例：3〜5営業日以内" style="margin-top:6px;display:none;">
+      </div>
+      <div class="form-row">
+        <label>修正回数の方針</label>
+        <select id="revision_policy" onchange="onRevisionChange(this)">
+          <option value="">選択してください</option>
+          <option value="修正無制限">修正無制限</option>
+          <option value="3回まで">3回まで</option>
+          <option value="2回まで">2回まで</option>
+          <option value="1回まで">1回まで</option>
+          <option value="応相談">応相談</option>
+          <option value="custom">自由入力する</option>
+        </select>
+        <input type="text" id="revision_policy_custom" placeholder="例：軽微な修正2回まで。大幅な方向性変更は別途相談" style="margin-top:6px;display:none;">
       </div>
       <div class="form-row">
         <label>納品できる形式</label>
@@ -491,8 +537,28 @@
         <textarea id="target_attribute" placeholder="例：年齢・職業・状況など" rows="2"></textarea>
       </div>
       <div class="form-row">
+        <label>文章のトーン</label>
+        <select id="tone" onchange="onToneChange(this)">
+          <option value="">選択してください</option>
+          <option value="プロフェッショナル・信頼感重視">プロフェッショナル・信頼感重視</option>
+          <option value="親しみやすい・フレンドリー">親しみやすい・フレンドリー</option>
+          <option value="やさしい・温かみのある">やさしい・温かみのある</option>
+          <option value="簡潔・スマート">簡潔・スマート</option>
+          <option value="custom">自由入力する</option>
+        </select>
+        <input type="text" id="tone_custom" placeholder="例：カジュアルだけど信頼感がある" style="margin-top:6px;display:none;">
+      </div>
+      <div class="form-row">
         <label>競合と差別化したい点</label>
         <textarea id="win_point" placeholder="例：デザインの意図を言語化して伝える・他にないオリジナル感・修正対応の丁寧さ" rows="2"></textarea>
+      </div>
+      <div class="form-row">
+        <label>参考にしたい競合のURL（任意）</label>
+        <textarea id="ref_urls" placeholder="例：https://coconala.com/services/...（複数ある場合は改行して入力）" rows="2"></textarea>
+      </div>
+      <div class="form-row">
+        <label>避けたい表現・失敗パターン（任意）</label>
+        <textarea id="avoid_patterns" placeholder="例：誇大表現、過度な売り込み文句、長すぎる箇条書き" rows="2"></textarea>
       </div>
       <div class="form-row">
         <label>除外・対応不可項目</label>
@@ -588,10 +654,41 @@
 
 <script>
 const SAVE_KEYS = {
-  about: ['experience','strength','price_range','delivery_format'],
-  strategy: ['target','win_point','exclusions'],
+  about: ['experience','strength','price_range','price_range_custom','delivery_format','delivery_speed','delivery_speed_custom','revision_policy','revision_policy_custom'],
+  strategy: ['target','target_attribute','tone','tone_custom','win_point','ref_urls','avoid_patterns','exclusions'],
   config: ['gas_url','sheet_url']
 };
+
+function onGenreMajorChange(sel) {
+  const custom = document.getElementById('genre_major');
+  if (sel.value === 'custom') {
+    custom.style.display = 'block';
+    custom.value = '';
+  } else {
+    custom.style.display = 'none';
+    custom.value = sel.value;
+  }
+}
+
+function onPriceRangeChange(sel) {
+  const custom = document.getElementById('price_range_custom');
+  custom.style.display = sel.value === 'custom' ? 'block' : 'none';
+}
+
+function onDeliverySpeedChange(sel) {
+  const custom = document.getElementById('delivery_speed_custom');
+  custom.style.display = sel.value === 'custom' ? 'block' : 'none';
+}
+
+function onRevisionChange(sel) {
+  const custom = document.getElementById('revision_policy_custom');
+  custom.style.display = sel.value === 'custom' ? 'block' : 'none';
+}
+
+function onToneChange(sel) {
+  const custom = document.getElementById('tone_custom');
+  custom.style.display = sel.value === 'custom' ? 'block' : 'none';
+}
 
 function showToast(msg, duration=2200) {
   const t = document.getElementById('toast');
@@ -639,7 +736,7 @@ function loadSaved() {
 
 function clearSection(sec) {
   const keyMap = {
-    basic: ['genre_major','genre_minor'],
+    basic: ['genre_major','product_description'],
     about: SAVE_KEYS.about,
     strategy: SAVE_KEYS.strategy
   };
@@ -647,6 +744,18 @@ function clearSection(sec) {
     const el = document.getElementById(key);
     if (el) el.value = '';
   });
+  // カスタム入力欄を非表示に
+  ['price_range_custom','revision_policy_custom','tone_custom','delivery_speed_custom'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.style.display = 'none';
+  });
+  // 大ジャンルのセレクトとカスタム入力をリセット
+  if (sec === 'basic') {
+    const genreSelect = document.getElementById('genre_major_select');
+    if (genreSelect) genreSelect.selectedIndex = 0;
+    const genreCustom = document.getElementById('genre_major');
+    if (genreCustom) { genreCustom.value = ''; genreCustom.style.display = 'none'; }
+  }
   showToast('🔄 クリアしました');
 }
 
@@ -661,7 +770,7 @@ function hideResetModal() {
   document.getElementById('resetModal').classList.remove('show');
 }
 function resetAll() {
-  const allKeys = ['genre_major','genre_minor',...SAVE_KEYS.about,...SAVE_KEYS.strategy,...SAVE_KEYS.config];
+  const allKeys = ['genre_major','product_description',...SAVE_KEYS.about,...SAVE_KEYS.strategy,...SAVE_KEYS.config];
   allKeys.forEach(key => {
     const el = document.getElementById(key);
     if (el) el.value = '';
@@ -669,8 +778,13 @@ function resetAll() {
   });
   document.getElementById('site_name').selectedIndex = 0;
   document.getElementById('count').value = '20';
+  document.getElementById('genre_major_select').selectedIndex = 0;
+  document.getElementById('genre_major').style.display = 'none';
   document.getElementById('output').value = '';
-  // トグルも全部オフに戻す
+  ['price_range_custom','revision_policy_custom','tone_custom','delivery_speed_custom'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.style.display = 'none';
+  });
   ['save_basic','save_about','save_strategy','save_config'].forEach(id => {
     const el = document.getElementById(id);
     if (el) el.checked = false;
@@ -707,7 +821,10 @@ function fallbackCopy(output) {
 
 function generate() {
   const siteName = document.getElementById('site_name').value;
-  const genreMajor = document.getElementById('genre_major').value.trim();
+  const genreSelect = document.getElementById('genre_major_select');
+  const genreMajor = genreSelect.value === 'custom'
+    ? document.getElementById('genre_major').value.trim()
+    : document.getElementById('genre_major').value.trim() || genreSelect.value;
   const productDescription = document.getElementById('product_description').value.trim();
   const count = document.getElementById('count').value;
   const gasUrl = document.getElementById('gas_url').value.trim();
@@ -731,11 +848,22 @@ function generate() {
 
   const experience = document.getElementById('experience').value;
   const strength = document.getElementById('strength').value.trim();
-  const priceRange = document.getElementById('price_range').value;
+  const priceRangeSel = document.getElementById('price_range').value;
+  const priceRange = priceRangeSel === 'custom' ? document.getElementById('price_range_custom').value.trim() : priceRangeSel;
   const deliveryFormat = document.getElementById('delivery_format').value.trim();
+  const deliverySpeedSel = document.getElementById('delivery_speed').value;
+  const deliverySpeed = deliverySpeedSel === 'custom'
+    ? document.getElementById('delivery_speed_custom').value.trim()
+    : deliverySpeedSel;
+  const revisionSel = document.getElementById('revision_policy').value;
+  const revisionPolicy = revisionSel === 'custom' ? document.getElementById('revision_policy_custom').value.trim() : revisionSel;
   const target = document.getElementById('target').value.trim();
   const targetAttribute = document.getElementById('target_attribute').value.trim();
-  const winPoint = document.getElementById('win_point').value;
+  const toneSel = document.getElementById('tone').value;
+  const tone = toneSel === 'custom' ? document.getElementById('tone_custom').value.trim() : toneSel;
+  const winPoint = document.getElementById('win_point').value.trim();
+  const refUrls = document.getElementById('ref_urls').value.trim();
+  const avoidPatterns = document.getElementById('avoid_patterns').value.trim();
   const exclusions = document.getElementById('exclusions').value.trim();
 
   const prompt = `あなたは出品設計アナリスト兼コピーライターです。
@@ -785,7 +913,7 @@ ${siteName}で「${genreMajor}」の検索を行い、販売実績順（人気�
 - 対応しない項目リスト（入力された「除外・対応不可項目」をもとに整理）
 
 ■ STEP 5：サンプル出品文章の自動生成
-1. 完成版サンプル出品文章（そのまま使えるレベル）
+1. 完成版サンプル出品文章（そのまま使えるレベル）※文章のトーンは「${tone || '親しみやすい・フレンドリー'}」を意識して生成すること
 2. トーン別タイトルバリエーション4案（安心型／実績型／おしゃれ型／価格訴求型）
 3. 構成選定の根拠
 
@@ -805,8 +933,13 @@ ${siteName}で「${genreMajor}」の検索を行い、販売実績順（人気�
 ・想定ターゲットの属性：${targetAttribute || '未記入'}
 ・強み・経歴・アピールポイント：${strength || '未記入'}
 ・希望価格帯：${priceRange || '未記入'}
+・納品スピード：${deliverySpeed || '未記入'}
+・修正回数の方針：${revisionPolicy || '未記入'}
 ・納品できる形式：${deliveryFormat || '未記入'}
+・文章のトーン：${tone || '未記入'}
 ・競合と差別化したい点：${winPoint || '未記入'}
+${refUrls ? `・参考にしたい競合URL：\n${refUrls}` : ''}
+${avoidPatterns ? `・避けたい表現・失敗パターン：${avoidPatterns}` : ''}
 
 【除外・対応不可項目】
 ・対応しないこと：${exclusions || '未記入'}
